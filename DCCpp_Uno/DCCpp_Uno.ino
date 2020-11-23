@@ -173,13 +173,12 @@ DCC++ BASE STATION is configured through the Config.h file that contains all use
 #include "CurrentMonitor.h"
 #include "Sensor.h"
 #include "SerialCommand.h"
-#include "Accessories.h"
 #include "EEStore.h"
+#include "EggTimer.h"
+#include "PushButton.h"
 #include "Config.h"
 #include "Comm.h"
-
-void showConfiguration();
-
+ 
 // SET UP COMMUNICATIONS INTERFACE - FOR STANDARD SERIAL, NOTHING NEEDS TO BE DONE
 
 #if COMM_TYPE == 1
@@ -209,6 +208,7 @@ void loop(){
     progMonitor.check();
   }
 
+  PushButton::buttonTimer.check();
   Sensor::check();    // check sensors for activate/de-activate
   
 } // loop
@@ -222,6 +222,8 @@ void setup(){
   Serial.begin(115200);            // configure serial interface
   Serial.flush();
 
+  EggTimer::timerConfig();
+
   #ifdef SDCARD_CS
     pinMode(SDCARD_CS,OUTPUT);
     digitalWrite(SDCARD_CS,HIGH);     // Deselect the SD card
@@ -231,9 +233,7 @@ void setup(){
 
   pinMode(A5,INPUT);                                       // if pin A5 is grounded upon start-up, print system configuration and halt
   digitalWrite(A5,HIGH);
-  if(!digitalRead(A5))
-    showConfiguration();
-
+  
   Serial.print("<iDCC++ BASE STATION FOR ARDUINO ");      // Print Status to Serial Line regardless of COMM_TYPE setting so use can open Serial Monitor and check configurtion 
   Serial.print(ARDUINO_TYPE);
   Serial.print(" / ");
@@ -388,6 +388,8 @@ void setup(){
   
 #endif
 
+  PushButton::init(&mainRegs, 3);
+  
 } // setup
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -471,91 +473,7 @@ ISR(TIMER3_COMPB_vect){              // set interrupt service for OCR3B of TIMER
 }
 
 #endif
-
-
-///////////////////////////////////////////////////////////////////////////////
-// PRINT CONFIGURATION INFO TO SERIAL PORT REGARDLESS OF INTERFACE TYPE
-// - ACTIVATED ON STARTUP IF SHOW_CONFIG_PIN IS TIED HIGH 
-
-void showConfiguration(){
-
-  int mac_address[]=MAC_ADDRESS;
-
-  Serial.print("\n*** DCC++ CONFIGURATION ***\n");
-
-  Serial.print("\nVERSION:      ");
-  Serial.print(VERSION);
-  Serial.print("\nCOMPILED:     ");
-  Serial.print(__DATE__);
-  Serial.print(" ");
-  Serial.print(__TIME__);
-
-  Serial.print("\nARDUINO:      ");
-  Serial.print(ARDUINO_TYPE);
-
-  Serial.print("\n\nMOTOR SHIELD: ");
-  Serial.print(MOTOR_SHIELD_NAME);
-  
-  Serial.print("\n\nDCC SIG MAIN: ");
-  Serial.print(DCC_SIGNAL_PIN_MAIN);
-  Serial.print("\n   DIRECTION: ");
-  Serial.print(DIRECTION_MOTOR_CHANNEL_PIN_A);
-  Serial.print("\n      ENABLE: ");
-  Serial.print(SIGNAL_ENABLE_PIN_MAIN);
-  Serial.print("\n     CURRENT: ");
-  Serial.print(CURRENT_MONITOR_PIN_MAIN);
-
-  Serial.print("\n\nDCC SIG PROG: ");
-  Serial.print(DCC_SIGNAL_PIN_PROG);
-  Serial.print("\n   DIRECTION: ");
-  Serial.print(DIRECTION_MOTOR_CHANNEL_PIN_B);
-  Serial.print("\n      ENABLE: ");
-  Serial.print(SIGNAL_ENABLE_PIN_PROG);
-  Serial.print("\n     CURRENT: ");
-  Serial.print(CURRENT_MONITOR_PIN_PROG);
-
-  Serial.print("\n\nNUM TURNOUTS: ");
-  Serial.print(EEStore::eeStore->data.nTurnouts);
-  Serial.print("\n     SENSORS: ");
-  Serial.print(EEStore::eeStore->data.nSensors);
-  Serial.print("\n     OUTPUTS: ");
-  Serial.print(EEStore::eeStore->data.nOutputs);
-  
-  Serial.print("\n\nINTERFACE:    ");
-  #if COMM_TYPE == 0
-    Serial.print("SERIAL");
-  #elif COMM_TYPE == 1
-    Serial.print(COMM_SHIELD_NAME);
-    Serial.print("\nMAC ADDRESS:  ");
-    for(int i=0;i<5;i++){
-      Serial.print(mac_address[i],HEX);
-      Serial.print(":");
-    }
-    Serial.print(mac_address[5],HEX);
-    Serial.print("\nPORT:         ");
-    Serial.print(ETHERNET_PORT);
-    Serial.print("\nIP ADDRESS:   ");
-
-    #ifdef IP_ADDRESS
-      Ethernet.begin(mac,IP_ADDRESS);           // Start networking using STATIC IP Address
-    #else
-      Ethernet.begin(mac);                      // Start networking using DHCP to get an IP Address
-    #endif     
-    
-    Serial.print(Ethernet.localIP());
-
-    #ifdef IP_ADDRESS
-      Serial.print(" (STATIC)");
-    #else
-      Serial.print(" (DHCP)");
-    #endif
-  
-  #endif
-  Serial.print("\n\nPROGRAM HALTED - PLEASE RESTART ARDUINO");
-
-  while(true);
-}
-
+ 
 ///////////////////////////////////////////////////////////////////////////////
 
 
