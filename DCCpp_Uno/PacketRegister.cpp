@@ -168,24 +168,6 @@ void RegisterList::setFunction(char *s) volatile{
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void RegisterList::setAccessory(char *s) volatile{
-  byte b[3];                      // save space for checksum byte
-  int aAdd;                       // the accessory address (0-511 = 9 bits) 
-  int aNum;                       // the accessory number within that address (0-3)
-  int activate;                   // flag indicated whether accessory should be activated (1) or deactivated (0) following NMRA recommended convention
-  
-  if(sscanf(s,"%d %d %d",&aAdd,&aNum,&activate)!=3)
-    return;
-    
-  b[0]=aAdd%64+128;                                           // first byte is of the form 10AAAAAA, where AAAAAA represent 6 least signifcant bits of accessory address  
-  b[1]=((((aAdd/64)%8)<<4) + (aNum%4<<1) + activate%2) ^ 0xF8;      // second byte is of the form 1AAACDDD, where C should be 1, and the least significant D represent activate/deactivate
-      
-  loadPacket(0,b,2,4,1);
-      
-} // RegisterList::setAccessory()
-
-///////////////////////////////////////////////////////////////////////////////
-
 void RegisterList::writeTextPacket(char *s) volatile{
   
   int nReg;

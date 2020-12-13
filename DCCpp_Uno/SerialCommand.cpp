@@ -16,9 +16,9 @@ Part of DCC++ BASE STATION for the Arduino
 
 #include "SerialCommand.h"
 #include "DCCpp_Uno.h"
-#include "Accessories.h"
 #include "Sensor.h"
 #include "Outputs.h"
+#include "PushButton.h"
 #include "EEStore.h"
 #include "Comm.h"
 
@@ -83,6 +83,11 @@ void SerialCommand::parse(char *com){
   
   switch(com[0]){
 
+    case 'm':
+      PushButton::button(0);
+      INTERFACE.print("<M>");
+    break;
+
 /***** SET ENGINE THROTTLES USING 128-STEP SPEED CONTROL ****/    
 
     case 't':       // <t REGISTER CAB SPEED DIRECTION>
@@ -138,49 +143,7 @@ void SerialCommand::parse(char *com){
  * 
  */
       mRegs->setFunction(com+1);
-      break;
-      
-/***** OPERATE STATIONARY ACCESSORY DECODERS  ****/    
-
-    case 'a':       // <a ADDRESS SUBADDRESS ACTIVATE>
-/*
- *    turns an accessory (stationary) decoder on or off
- *    
- *    ADDRESS:  the primary address of the decoder (0-511)
- *    SUBADDRESS: the subaddress of the decoder (0-3)
- *    ACTIVATE: 1=on (set), 0=off (clear)
- *    
- *    Note that many decoders and controllers combine the ADDRESS and SUBADDRESS into a single number, N,
- *    from  1 through a max of 2044, where
- *    
- *    N = (ADDRESS - 1) * 4 + SUBADDRESS + 1, for all ADDRESS>0
- *    
- *    OR
- *    
- *    ADDRESS = INT((N - 1) / 4) + 1
- *    SUBADDRESS = (N - 1) % 4
- *    
- *    returns: NONE
- */
-      mRegs->setAccessory(com+1);
-      break;
-
-/***** CREATE/EDIT/REMOVE/SHOW & OPERATE A TURN-OUT  ****/    
-
-    case 'T':       // <T ID THROW>
-/*
- *   <T ID THROW>:                sets turnout ID to either the "thrown" or "unthrown" position
- *   
- *   ID: the numeric ID (0-32767) of the turnout to control
- *   THROW: 0 (unthrown) or 1 (thrown)
- *   
- *   returns: <H ID THROW> or <X> if turnout ID does not exist
- *   
- *   *** SEE ACCESSORIES.CPP FOR COMPLETE INFO ON THE DIFFERENT VARIATIONS OF THE "T" COMMAND
- *   USED TO CREATE/EDIT/REMOVE/SHOW TURNOUT DEFINITIONS
- */
-      Turnout::parse(com+1);
-      break;
+      break;        
 
 /***** CREATE/EDIT/REMOVE/SHOW & OPERATE AN OUTPUT PIN  ****/    
 
@@ -389,8 +352,7 @@ void SerialCommand::parse(char *com){
         INTERFACE.print(Ethernet.localIP());
         INTERFACE.print(">");
       #endif
-      
-      Turnout::show();
+            
       Output::show();
                         
       break;

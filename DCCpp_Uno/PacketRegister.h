@@ -51,7 +51,6 @@ struct RegisterList{
   void loadPacket(int, byte *, int, int, int=0) volatile;
   void setThrottle(char *) volatile;
   void setFunction(char *) volatile;  
-  void setAccessory(char *) volatile;
   void writeTextPacket(char *) volatile;
   void readCV(char *) volatile;
   void writeCVByte(char *) volatile;
